@@ -12,7 +12,7 @@ import textwrap
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument("--USER_DATA", type=lambda x: bool(distutils.util.strtobool(x)), required=False, 
                         default=False, 
                         help="Whether to provide listening history to ChatGPT for playlist suggestion.")
@@ -23,14 +23,14 @@ if __name__ == "__main__":
                              "long_term (for years), " \
                              "medium_term (for past 6 months), " \
                              "short_term (for past 4 weeks)")
-    
+
     parser.add_argument("--TOP_GENRE", type=int, required=False, 
                         default=1, 
                         help="Top # genre that is: "\
                              "1 (most listened), " \
                              "2 (second most listened), " \
                              "3 (third most listened)")
-    
+
     parser.add_argument("--PROMPT", type=str, required=False, 
                         default="similar to the ones created by Daniel Avery", 
                         help="Write a prompt that completes the following sentence: \n"\
@@ -53,12 +53,14 @@ if __name__ == "__main__":
 
         width = 70
         print("-" * width)
-        print("Top #{} Listened Genre: {}".format(args.TOP_GENRE, selected_genre))
-        print(textwrap.fill("Artists              : {}".format(artists)))
+        print(f"Top #{args.TOP_GENRE} Listened Genre: {selected_genre}")
+        print(textwrap.fill(f"Artists              : {artists}"))
         print("-" * width)
 
-        play.ask_chatgpt(prompt="Suggest new artists in the same genre with " + artists,
-                         prompt_type="")
+        play.ask_chatgpt(
+            prompt=f"Suggest new artists in the same genre with {artists}",
+            prompt_type="",
+        )
         play.ask_chatgpt(prompt="Create a playlist featuring the new artists. Provide first the song name followed by the artist.",
                          prompt_type="playlist")
     else:
@@ -69,9 +71,9 @@ if __name__ == "__main__":
         #   - falling under the genre downtempo and trip-hop
         play.ask_chatgpt(prompt=args.PROMPT,
                          prompt_type="playlist")
-    
+
     play.create_playlist()
-    
+
     if not args.PLAYLIST_NAME: 
         # Ask ChatGPT for a playlist name
         # Provide: prompt_type = name

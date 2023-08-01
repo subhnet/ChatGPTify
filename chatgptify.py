@@ -53,27 +53,29 @@ class SpotifyPlaylist():
             RuntimeError: Upon ChatGPT execution failure.
         """        
         print("Asking ChatGPT...")
-        
-        if prompt_type == "playlist": 
-            prompt = "Provide a playlist containing songs " + prompt
-        elif prompt_type == "name":
+
+        if prompt_type == "name":
             prompt = "What might be a suitable and creative name for this playlist?" \
-                     " Only provide the name and no other details."
-       
+                         " Only provide the name and no other details."
+
+        elif prompt_type == "playlist":
+            prompt = f"Provide a playlist containing songs {prompt}"
         success, response, message = self.bot.ask(prompt)
 
         if not success:
             raise RuntimeError(message)
 
-        if prompt_type == "playlist": self.playlist_response = response
-        if prompt_type == "name": self.name = str(response.replace('"',''))
+        if prompt_type == "name":
+            self.name = str(response.replace('"',''))
+        elif prompt_type == "playlist":
+            self.playlist_response = response
         self.last_response = response
-        
+
         if display:
             width = 70
             print("-" * width)
             print("     " * (width // 11) + "ChatGPT")
-            prompt_str = textwrap.fill("Prompt: " + prompt)
+            prompt_str = textwrap.fill(f"Prompt: {prompt}")
             print(prompt_str)
             print("-" * width)
             display_str = textwrap.fill(response)
@@ -95,11 +97,11 @@ class SpotifyPlaylist():
                 if 'by' in q:
                     name, artist = q.split(' by ')
                     if '-' in artist: artist = artist[:artist.find('-')]
-                    search_q = "{}%10artist:{}".format(name, artist)
+                    search_q = f"{name}%10artist:{artist}"
                     r = self.sp.search(search_q)
                 elif '-' in q:
                     name, artist = q.split(' - ')
-                    search_q = "{}%10artist:{}".format(name, artist)
+                    search_q = f"{name}%10artist:{artist}"
                     r = self.sp.search(search_q)
                 else:
                     r = self.sp.search(q)
@@ -108,7 +110,7 @@ class SpotifyPlaylist():
                                      artist=item['artists'], album=item['album'])
                 playlist.append(track)
             except:
-                print("Track not found: {}".format(q))
+                print(f"Track not found: {q}")
 
         self.playlist = playlist
 
@@ -127,12 +129,14 @@ class SpotifyPlaylist():
         user_id = self.sp.current_user()['id']
         self.sp.user_playlist_create(user=user_id, name=name, public=True)
 
-        p_id = None
-        for playlist in self.sp.user_playlists(user_id)['items']:
-            if playlist['name'] == name:
-                p_id = playlist['id']
-                break
-        
+        p_id = next(
+            (
+                playlist['id']
+                for playlist in self.sp.user_playlists(user_id)['items']
+                if playlist['name'] == name
+            ),
+            None,
+        )
         tracks = [track.uri for track in self.playlist]
         self.sp.user_playlist_add_tracks(user=user_id, playlist_id=p_id, tracks=tracks)
 

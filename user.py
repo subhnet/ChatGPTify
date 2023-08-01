@@ -20,7 +20,9 @@ class User():
         results = self.sp.current_user_top_artists(time_range=self.term, limit=100)
         all_genres = [genre for r in results['items'] for genre in r['genres']]
         top_genres = Counter(all_genres)
-        self.top_genres = {key : value for key, value in sorted(top_genres.items(), key=lambda k: k[1], reverse=True)}
+        self.top_genres = dict(
+            sorted(top_genres.items(), key=lambda k: k[1], reverse=True)
+        )
         self.top_genres_artists = [[r['name'], r['id'], r['genres']] if len(r['genres']) > 0 else [r['name'], r['id'], ['unknown genre']] for r in results['items']]
 
 
@@ -28,10 +30,9 @@ class User():
         return list(self.top_genres.keys())[idx] 
     
     def get_genre_artists(self, genre):
-        artists = []
-        for name, _, genres in self.top_genres_artists:
-            if genre in genres:
-                artists.append(name)
+        artists = [
+            name for name, _, genres in self.top_genres_artists if genre in genres
+        ]
         artists = ", ".join(artists)
         return artists
 
